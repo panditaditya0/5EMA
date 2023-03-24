@@ -247,6 +247,7 @@ def trade(symbol):
                     second_last_candle_low))
                 if last_traded_price < second_last_candle_low:
                     if position != "sell":
+                        strike_price = buy_sell_trade("buy", last_traded_price, strike_price=None)
                         trade["Symbol"] = symbol
                         trade["Buy/Sell"] = "sell"
                         trade["Entry"] = last_traded_price
@@ -259,7 +260,6 @@ def trade(symbol):
                         one_is_to_three_ltp = last_traded_price - initial_one_is_to_three
                         print("1:3 target => {0}".format(one_is_to_three_ltp))
                         position = "sell"
-                        strike_price = buy_sell_trade("buy", last_traded_price, strike_price=None)
                         logging.info(df)
 
             #   Exit trade
@@ -275,6 +275,7 @@ def trade(symbol):
                             second_last_candle_high, last_candle_high, five_ema_value))
                         difference = float(last_traded_price - entry_price)
                         if difference > 0:
+                            buy_sell_trade("sell", last_traded_price, strike_price)
                             print("Exit position at LOSS : {0} at LTP : {1} ENTRY : %s TIME : {2}".format(
                                 difference, last_trading_date_time, entry_price, last_trading_date_time))
                             trade["Symbol"] = symbol
@@ -282,13 +283,13 @@ def trade(symbol):
                             trade["Exit"] = last_traded_price
                             trade["Datetime"] = last_trading_date_time
                             is_one_is_to_three_done = False
-                            buy_sell_trade("sell", last_traded_price, strike_price)
                             initial_one_is_to_three = None
                             strike_price = None
                             position = None
                             write_in_excel(trade)
                             logging.info(df)
                         if difference < 0:
+                            buy_sell_trade("sell", last_traded_price, strike_price)
                             print("Exit position at PROFIT : {0} at LTP : {1} ENTRY : {2} TIME : {3}".format(
                                 difference, last_trading_date_time, entry_price, last_trading_date_time))
                             trade["Symbol"] = symbol
@@ -296,13 +297,13 @@ def trade(symbol):
                             trade["Exit"] = last_traded_price
                             trade["Datetime"] = last_trading_date_time
                             is_one_is_to_three_done = False
-                            buy_sell_trade("sell", last_traded_price, strike_price)
                             position = None
                             initial_one_is_to_three = None
                             strike_price = None
                             write_in_excel(trade)
                             logging.info(df)
                     elif trade["SL"] < last_traded_price:
+                        buy_sell_trade("sell", last_traded_price, strike_price)
                         difference = float(trade["SL"]) - last_traded_price
                         trade["Symbol"] = symbol
                         trade["Buy/Sell"] = "Buy"
@@ -311,7 +312,6 @@ def trade(symbol):
                         print("1:3 Exit position at LOSS : {0} at LTP : {1} EXIT : {2} TIME : {3}".format(
                             difference, last_traded_price, float(trade["SL"]), current_time))
                         write_in_excel(trade)
-                        buy_sell_trade("sell", last_traded_price, strike_price)
                         is_one_is_to_three_done = False
                         position = None
                         initial_one_is_to_three = None
@@ -321,12 +321,12 @@ def trade(symbol):
 
                         logging.info(df)
                 elif last_traded_price > trade["SL"] and is_one_is_to_three_done is False:
+                    buy_sell_trade("sell", last_traded_price, strike_price)
                     difference = float(trade["SL"]) - entry_price
                     trade["Symbol"] = symbol
                     trade["Buy/Sell"] = "Buy"
                     trade["Exit"] = last_traded_price
                     trade["Datetime"] = current_time
-                    buy_sell_trade("sell", last_traded_price, strike_price)
                     print("1:3 Exit position at LOSS : {0} at LTP : {1} EXIT : {2} TIME : {3}".format(
                         difference, last_traded_price, float(trade["SL"]), current_time))
                     initial_oneIsToThree = None
@@ -345,7 +345,6 @@ def trade(symbol):
 
 
 if __name__ == "__main__":
-    # buy_sell_trade("buy", 17548)
     start_web_socket()
     five_ma()
     trade(symbol=symbol)
